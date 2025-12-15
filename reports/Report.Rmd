@@ -37,6 +37,9 @@ modifiedturtle_points <- turtle_points %>%
   filter(!is.na(latitude), !is.na(longitude), !is.na(date_time))
 modifiedturtle_points <- modifiedturtle_points %>%
   mutate(lon_wrap = ifelse(longitude > 180, longitude - 360, longitude))
+if (!file.exists("../data_processed/turtle_points_clean.csv")) {
+  write_csv(modifiedturtle_points, "../data_processed/turtle_points_clean.csv")
+}
 ```
 
 
@@ -238,6 +241,16 @@ ggplot(time_counts, aes(x = month_start, y = n)) +
 ```
 This figure shows that separate turtles provide different numbers
 of observations.
+
+```{r lat_season, fig.cap="Latitude by season."}
+ggplot(modifiedturtle_points, aes(x = season, y = latitude)) +
+  geom_boxplot() +
+  labs(x = "Season", y = "Latitude")
+```
+
+This figure shows latitude spread across Winter, Spring, Summer, and Fall.
+
+
 \newpage
 
 # Analysis
