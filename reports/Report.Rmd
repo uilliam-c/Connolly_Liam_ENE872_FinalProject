@@ -98,9 +98,73 @@ am curious if precision differs across classitem categories.
 \newpage
 
 # Dataset Information
+This dataset originates from OBIS-SEAMAP. Specifically, the dataset is called
+“SWFSC juvenile loggerhead sea turtle tracking 2002–2005” 
+(Dataset ID 758; Version 1.0.1; internal DOI: 10.82144/4774e438). Actual URL is:
+https://seamap.env.duke.edu/dataset/758
+The metadata explains in further detail that the source is satellite tracking 
+data of the juvenile loggerhead turtle (Caretta caretta). The dataset has data 
+from October 14, 2002 to July 7, 2005. Location coordinates are provided in 
+decimal degrees (coordinate system: WGS84), and the spatial extent 
+for the dataset is approximately 20.95–41.913° N latitude and 
+153.571–246.713° E longitude. 
 
+Each row in the points file is a single location observation for an 
+individually separate turtle. Also included with an observation is the latitude
+and longitude (represented in decimal degrees) and observation date/time. There
+are some limitations as publically downloading the data limits me to core fields
+including date/time, latitude/longitude, and species information. It is unclear
+if the categories I can't download will influence the data analyses I conduct. 
 
+I imported the points CSV into R-studio Online and converted the 
+date_time column to date_time in UTC. I removed any records with missing
+latitude, longitude, or timestamp information. In this case, just one record was
+removed. Not knowing this in advance that only one record would be removed,
+I intended to ensure all analyses had a complete set of spatial observations
+recorded to remove outlier data. Additionally, I created a categorical season 
+variable from the months included in date_time. Winter was defined as Dec–Feb,
+Spring = Mar–May, Summer = Jun–Aug, and Fall = Sep–Nov. Finally, I converted
+class_item to a categorical variable for later group comparison.
 
+```{r}
+table1 <- tibble::tibble(
+  Detail = c("Data source",
+             "Retrieved from",
+             "Dataset title",
+             "Dataset ID",
+             "DOI",
+             "Date range",
+             "Coordinate system"),
+  Description = c("OBIS-SEAMAP",
+                  "https://seamap.env.duke.edu/dataset/758",
+                  "SWFSC juvenile loggerhead sea turtle tracking 2002–2005",
+                  "758",
+                  "https://doi.org/10.82144/4774e438",
+                  "2002-10-14 to 2005-07-07",
+                  "WGS84; decimal degrees")
+)
+
+knitr::kable(table1, caption = "Table 3.1: Dataset information.")
+
+table2_vertical <- tibble::tibble(
+  Detail = c("Number of observations", "Number of turtles", "Start date-time", 
+          "End date-time", "Minimum latitude", "Maximum latitude", 
+          "Minimum longitude", "Maximum longitude", "Median lprecision"),
+  Value = c(nrow(modifiedturtle_points),
+            dplyr::n_distinct(modifiedturtle_points$series_id),
+            as.character(min(modifiedturtle_points$date_time, na.rm = TRUE)),
+            as.character(max(modifiedturtle_points$date_time, na.rm = TRUE)),
+            min(modifiedturtle_points$latitude, na.rm = TRUE),
+            max(modifiedturtle_points$latitude, na.rm = TRUE),
+            min(modifiedturtle_points$longitude, na.rm = TRUE),
+            max(modifiedturtle_points$longitude, na.rm = TRUE),
+            median(modifiedturtle_points$lprecision, na.rm = TRUE))
+)
+
+knitr::kable(table2_vertical, caption = "Table 3.2: Data structure and 
+Basic ranges for Key Variables Used.")
+
+```
 \newpage
 
 # Exploratory Analysis 
