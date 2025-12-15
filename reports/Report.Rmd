@@ -1,3 +1,10 @@
+---
+title: "Spatial Hotspots and Seasonal Shifts in Juvenile Loggerhead Sea Turtle Telemetry Data (2002–2005)"
+author: "Liam Connolly"
+output: bookdown::pdf_document2
+  toc: false
+    number_selections: true
+---
 \newpage
 \tableofcontents 
 \newpage
@@ -8,18 +15,49 @@
 
 ```{r setup, include=FALSE}
 # Set your working directory
-
+knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
 # Load your packages
-
+library(tidyverse)
+library(lubridate)
 # Set your ggplot theme
-
+theme_set(theme_bw())
 # Load your datasets
+turtle_points <- readr::read_csv("../data_raw/turtlepoints.csv",
+  show_col_types = FALSE)
 
+modifiedturtle_points <- turtle_points %>%
+  mutate(date_time =ymd_hms(date_time, tz = "UTC"),
+  month = month(date_time), 
+  season = ifelse(month %in% c(12, 1, 2), "DJF",
+           ifelse(month %in% c(3, 4, 5), "MAM",
+           ifelse(month %in% c(6, 7, 8), "JJA", "SON"))),
+  season = factor(season, levels = c("DJF", "MAM", "JJA", "SON")),
+  classitem = factor(classitem)) %>%
+  filter(!is.na(latitude), !is.na(longitude), !is.na(date_time))
 ```
 
 
 # Rationale and Research Questions
+According to the online database, from which I collected my data, juvenile 
+loggerhead turtles (Caretta caretta) move around frequently. Due to their 
+juvenile phase of life, they are highly mobile yet, what isn't known is how or 
+why they move to certain places in different seasons or ocean regions. 
+From a spatial perspective, we don't have answers. Being able to identify where 
+and when these turtles move/are found can help better understand their habitats.
+It would be awesome to discover "hotspots" of more concentrated turtle presence 
+as that may guide additional ecological analyses in the future. With the data 
+available, it should be possible to assemble a general sense of the spatial 
+patterns these loggerheads exhibit.
 
+The background of this dataset relies on using satellite tracking locations
+where each record present is indicative of a geo-referenced observation of a 
+juvenile loggerhead. Each record comes with latitude/longitude, an individual 
+identifier (series_id), and a timestamp (date_time). It is likely the dataset
+will include repeated observations from the same loggerhead over the course of
+the study (2002-2005), the data is still relevant for basic analyses. I will be 
+focusing on examing seasonal distribution and spatial concentration for the 
+loggerheads. Finally, the data contains a location "class" code (classitem) and 
+some precision fields to help evaluate the patterns of data quality. 
 
 
 \newpage
