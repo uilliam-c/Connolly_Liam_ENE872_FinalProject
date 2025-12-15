@@ -1,5 +1,6 @@
 ---
 title: "Spatial Hotspots and Seasonal Shifts in Juvenile Loggerhead Sea Turtle Telemetry Data (2002–2005)"
+https://github.com/uilliam-c/Connolly_Liam_ENE872_FinalProject
 author: "Liam Connolly"
 output: bookdown::pdf_document2
   toc: false
@@ -28,10 +29,10 @@ turtle_points <- readr::read_csv("../data_raw/turtlepoints.csv",
 modifiedturtle_points <- turtle_points %>%
   mutate(date_time =ymd_hms(date_time, tz = "UTC"),
   month = month(date_time), 
-  season = ifelse(month %in% c(12, 1, 2), "DJF",
-           ifelse(month %in% c(3, 4, 5), "MAM",
-           ifelse(month %in% c(6, 7, 8), "JJA", "SON"))),
-  season = factor(season, levels = c("DJF", "MAM", "JJA", "SON")),
+  season = ifelse(month %in% c(12, 1, 2), "Winter",
+           ifelse(month %in% c(3, 4, 5), "Spring",
+           ifelse(month %in% c(6, 7, 8), "Summer", "Fall"))),
+  season = factor(season, levels = c("Winter", "Spring", "Summer", "Fall")),
   classitem = factor(classitem)) %>%
   filter(!is.na(latitude), !is.na(longitude), !is.na(date_time))
 ```
@@ -59,7 +60,41 @@ focusing on examing seasonal distribution and spatial concentration for the
 loggerheads. Finally, the data contains a location "class" code (classitem) and 
 some precision fields to help evaluate the patterns of data quality. 
 
+Research Topic 1) Seasonal distribution Shifts
+Research Question: Do juvenile loggerhead sea turtle locations (latitude)
+differ among seasons (Winter, Spring, Summer, Fall)?
+Hypothesis: Mean latitude differs among seasons.
+Rationale for hypothesis: By nature, seasonal changes in ocean conditions such 
+as temperature, current direction, etc should influence where juvenile turtles 
+are found. If this were true that juvenile loggerheads go to different places
+throughout the year, or if observation density varies by the different seasons
+in varying areas, then there should be differences in latitude 
+among seasons.
 
+Research Topic 2) Spatial Hotspots of Presence
+Research Question : Are loggerhead turtles locations concentrated in a few 
+specific geographic areas (“Hotspots”) or are they more evenly distributed?
+Hypothesis: The locations are spatially clustered, with a small amount of 
+places accounting for a disproportionate amount of loggerhead observations.
+Rationale: It isn't uncommon for animals, when they find a favorable place to 
+live with good food availability or water temperature, to appear repeatedly in 
+the same area. Therefore, if I can discover repeated observations of 
+loggerheads in the same types of areas, it should allow for the creation of 
+measurable hotspots in a spatial setting.
+
+Research Topic 3) Data quality Differences by Location Class
+Research Question: Do the categories in classitem correspond with 
+differences in reported location precision (lprecision), and what would that
+imply for interpreting spatial patterns?
+Hypothesis: At least one classitem category has a different mean/median 
+lprecision than the others
+Rationale: While examining the dataset, I came across the columns with largely
+unexplained categorical code (I think its categorical) that wasn't mentioned
+anywhere in the public database. Those codes being classitem, and precision 
+fields lprecision andtprecision. Upon consulting the metadata, it didn't 
+mention what those fields meant either. Precision would naturally be relevant 
+to examining hotspots as positioning would impact spatial clustering so I 
+am curious if precision differs across classitem categories.  
 \newpage
 
 # Dataset Information
