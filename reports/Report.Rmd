@@ -88,19 +88,20 @@ the same area. Therefore, if I can discover repeated observations of
 loggerheads in the same types of areas, it should allow for the creation of 
 measurable hotspots in a spatial setting.
 
-Research Topic 3) Data quality Differences by Location Class
-Research Question: Do the categories in classitem correspond with 
-differences in reported location precision (lprecision), and what would that
-imply for interpreting spatial patterns?
-Hypothesis: At least one classitem category has a different mean/median 
-lprecision than the others
-Rationale: While examining the dataset, I came across the columns with largely
+Research Topic 3) Classitem Differences by Location Class
+Research Question: Does the distribution of classitem categories
+differ by season?
+Hypothesis: The variety of observations in each classitem category
+will differ among seasons (Winter, Spring, Summer, Fall),
+indicating that the mix of class item codes will also vary over time.
+Rationale: While examining the dataset, I came across the columns with a largely
 unexplained categorical code (I think its categorical) that wasn't mentioned
-anywhere in the public database. Those codes being classitem, and precision 
-fields lprecision andtprecision. Upon consulting the metadata, it didn't 
-mention what those fields meant either. Precision would naturally be relevant 
-to examining hotspots as positioning would impact spatial clustering so I 
-am curious if precision differs across classitem categories.  
+anywhere in the public database. That code being classitem. It appears the
+classitem has some variablity between observations and that the recorded 
+observations have no even distribution across the study. In theory, the
+data collected via satellite would be under different conditions including 
+seasonal shifts in loggerhead behavior so, it is possible that the proportion
+of observations in each class item category differs among seasons. 
 \newpage
 
 # 3. Dataset Information
@@ -121,6 +122,8 @@ and longitude (represented in decimal degrees) and observation date/time. There
 are some limitations as publically downloading the data limits me to core fields
 including date/time, latitude/longitude, and species information. It is unclear
 if the categories I can't download will influence the data analyses I conduct. 
+Reported precision fields (lprecision and tprecision) were constant in this
+dataset, so precision-based comparisons were not informative. 
 \newpage
 
 # 4. Data Wrangling
@@ -250,15 +253,79 @@ ggplot(modifiedturtle_points, aes(x = season, y = latitude)) +
 
 This figure shows latitude spread across Winter, Spring, Summer, and Fall.
 
+```{r hot, fig.cap="Exploratory point density (1-degree grid)."}
+hotgrid <- modifiedturtle_points %>%
+  mutate(
+    lat_bin = floor(latitude),
+    lon_bin = floor(lon_wrap)
+  ) %>%
+  count(lat_bin, lon_bin)
 
+ggplot(hotgrid, aes(x = lon_bin, y = lat_bin, fill = n)) +
+  geom_tile() +
+  labs(x = "Longitude (binned)", y = "Latitude (binned)", fill = "Count")
+```
+This figure inquires and suggests areas of concentrated observations
+that motivate the hotspot analysis for Q2.
+
+```{r class_season, fig.cap="Proportion of observations in the most common classitem categories by season."}
+top_class <- modifiedturtle_points %>%
+  count(classitem, sort = TRUE) %>%
+  slice_head(n = 6) %>%
+  pull(classitem)
+
+modifiedturtle_points %>%
+  mutate(classitem2 = ifelse(classitem %in% top_class, as.character(classitem), "Other")) %>%
+  count(season, classitem2) %>%
+  ggplot(aes(x = season, y = n, fill = classitem2)) +
+  geom_col(position = "fill") +
+  labs(x = "Season", y = "Proportion of observations", fill = "classitem")
+```
+This figure shows the varying proportionate composition of classitem 
+categories across different seasons. While many classitem categories are
+shown, a few make up most observations. The relative proportions appear similar
+between seasons.
 \newpage
 
 # Analysis
 
 
-
 ## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
+```{r rq1_prep, include=FALSE}
+lat_season_means <- modifiedturtle_points %>%
+  group_by(series_id, season) %>%
+  summarise(
+    mean_lat = mean(latitude, na.rm = TRUE),
+    n_obs = n(),
+    .groups = "drop"
+  )
+```
 
+```{r rq1_fig, fig.cap="Mean latitude by season (summarized per turtle)."}
+ggplot(lat_season_means, aes(x = season, y = mean_lat)) +
+  geom_boxplot() +
+  labs(x = "Season", y = "Mean latitude (per turtle)")
+```
+```{r rq1_test, include=FALSE}
+rq1_aov <- aov(mean_lat ~ season, data = lat_season_means)
+rq1_aov_summary <- summary(rq1_aov)
+rq1_season_summary <- lat_season_means %>%
+  group_by(season) %>%
+  summarise(
+    n_turtles = n(),
+    mean_lat = mean(mean_lat, na.rm = TRUE),
+    sd_lat = sd(mean_lat, na.rm = TRUE),
+    .groups = "drop"
+  )
+rq1_season_summary
+```
+After being able to summarize latitude by individual turtle occurrences and
+season, mean latitude differed significantly among seasons (ANOVA; df = 3,
+58; F = 38.3; p = 8.97 × 10⁻¹⁴ or p<0.0001). This figure clearly shows
+seasonal separation in per-turtle mean latitude. With that said, these results
+support my hypothesis that juvenile loggerhead latitude varies by season
+in this dataset. Mean latitude was highest in Fall (36.89°N) and lowest
+in Spring (32.02°N). This is consistent with a seasonal shift in latitude.
 ## Question 2: 
 
 
