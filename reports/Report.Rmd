@@ -35,10 +35,12 @@ modifiedturtle_points <- turtle_points %>%
   season = factor(season, levels = c("Winter", "Spring", "Summer", "Fall")),
   classitem = factor(classitem)) %>%
   filter(!is.na(latitude), !is.na(longitude), !is.na(date_time))
+modifiedturtle_points <- modifiedturtle_points %>%
+  mutate(lon_wrap = ifelse(longitude > 180, longitude - 360, longitude))
 ```
 
 
-# Rationale and Research Questions
+# 1. Rationale
 According to the online database, from which I collected my data, juvenile 
 loggerhead turtles (Caretta caretta) move around frequently. Due to their 
 juvenile phase of life, they are highly mobile yet, what isn't known is how or 
@@ -60,6 +62,7 @@ focusing on examing seasonal distribution and spatial concentration for the
 loggerheads. Finally, the data contains a location "class" code (classitem) and 
 some precision fields to help evaluate the patterns of data quality. 
 
+# 2. Research Questions
 Research Topic 1) Seasonal distribution Shifts
 Research Question: Do juvenile loggerhead sea turtle locations (latitude)
 differ among seasons (Winter, Spring, Summer, Fall)?
@@ -97,7 +100,7 @@ to examining hotspots as positioning would impact spatial clustering so I
 am curious if precision differs across classitem categories.  
 \newpage
 
-# Dataset Information
+# 3. Dataset Information
 This dataset originates from OBIS-SEAMAP. Specifically, the dataset is called
 “SWFSC juvenile loggerhead sea turtle tracking 2002–2005” 
 (Dataset ID 758; Version 1.0.1; internal DOI: 10.82144/4774e438). Actual URL is:
@@ -115,7 +118,9 @@ and longitude (represented in decimal degrees) and observation date/time. There
 are some limitations as publically downloading the data limits me to core fields
 including date/time, latitude/longitude, and species information. It is unclear
 if the categories I can't download will influence the data analyses I conduct. 
+\newpage
 
+# 4. Data Wrangling
 I imported the points CSV into R-studio Online and converted the 
 date_time column to date_time in UTC. I removed any records with missing
 latitude, longitude, or timestamp information. In this case, just one record was
@@ -144,7 +149,7 @@ table1 <- tibble::tibble(
                   "WGS84; decimal degrees")
 )
 
-knitr::kable(table1, caption = "Table 3.1: Dataset information.")
+knitr::kable(table1, caption = "Dataset information.")
 
 table2_vertical <- tibble::tibble(
   Detail = c("Number of observations", "Number of turtles", "Start date-time", 
@@ -161,16 +166,78 @@ table2_vertical <- tibble::tibble(
             median(modifiedturtle_points$lprecision, na.rm = TRUE))
 )
 
-knitr::kable(table2_vertical, caption = "Table 3.2: Data structure and 
+knitr::kable(table2_vertical, caption = "Data structure and 
 Basic ranges for Key Variables Used.")
 
 ```
 \newpage
 
-# Exploratory Analysis 
+# 5. Exploratory Analysis 
+This analysis of the data used gives a general summary of the spatial
+structure of the juvenile loggerhead turtle location dataset prior to testing
+my three hypotheses. First, I use maps of latitude and longitude to describe
+the geographic extent of observations and then I try to do a summary
+over time to get a sense of the patterns of observation across months and
+seasons. To inquire the spatial concentration for question 2, I tried to express
+a visualization of point density to identify whether sightings appear
+clustered into potential “hotspots.” Additionally, I was curious to see if I
+could separate the observations between individual turtles (via series_id) to
+find repeated sightings. Finally, I try to express latitude by season
+(Winter, Spring, Summer, Fall) to address the seasonal questions from the first
+question and to compare the reported location precision (lprecision) with
+classitem categories. This is to determine if the differences in positional 
+precision could influence the spatial clustering that I was curious of in my
+third research question.
+```{r}
+missingdata_table <- modifiedturtle_points %>%
+  summarise(
+    n_total = n(),
+    missing_lat = sum(is.na(latitude)),
+    missing_lon = sum(is.na(longitude)),
+    missing_date_time = sum(is.na(date_time)),
+    missing_lprecision = sum(is.na(lprecision)),
+    missing_classitem = sum(is.na(classitem))
+  ) %>%
+  mutate(across(everything(), as.character)) %>%
+  tidyr::pivot_longer(everything(), names_to = "Detail", values_to = "Value")
+knitr::kable(missingdata_table, caption = "Representing Missing Data 
+             with Key Variables.")
+```
+This table shows, after filtering, that there are no missing values within the 
+key variables used for analysis (latitude, longitude, timestamp, precision, 
+and class code). With this in mind, further plots and tests are being conducted
+off a complete dataset of 6861 location observations.
+```{r map, fig.cap="Spatial Patterns for Turtles.", fig.width=7, fig.height=4, out.width="0.9\\linewidth", fig.align="center"}
+ggplot(modifiedturtle_points, aes(x = lon_wrap, y = latitude)) +
+  geom_point(alpha = 0.3) +
+  labs(x = "Longitude", y = "Latitude")
+```
+Figure shows the geographic extent of juvenile loggerhead turtle
+locations within this dataset. 
 
+```{r time, fig.cap="Number of location observations over time (by month)."}
+time_counts <- modifiedturtle_points %>%
+  mutate(month_start = floor_date(date_time, unit = "month")) %>%
+  count(month_start)
+ggplot(time_counts, aes(x = month_start, y = n)) +
+  geom_col() +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  labs(x = "Month", y = "Number of observations")
+```
+This Figure shows sampling intensity across the duration of the study period.
 
+```{r time, fig.cap="Number of location observations over time (by month)."}
+time_counts <- modifiedturtle_points %>%
+  mutate(month_start = floor_date(date_time, unit = "month")) %>%
+  count(month_start)
 
+ggplot(time_counts, aes(x = month_start, y = n)) +
+  geom_col() +
+  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
+  labs(x = "Month", y = "Number of observations")
+```
+This figure shows that separate turtles provide different numbers
+of observations.
 \newpage
 
 # Analysis
