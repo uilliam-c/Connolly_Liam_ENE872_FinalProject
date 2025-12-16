@@ -287,10 +287,11 @@ shown, a few make up most observations. The relative proportions appear similar
 between seasons.
 \newpage
 
-# Analysis
+# 6. Analysis
 
 
-## Question 1: <insert specific question here and add additional subsections for additional questions below, if needed>
+## Question 1: Do juvenile loggerhead sea turtle locations (latitude) differ 
+## among seasons (Winter, Spring, Summer, Fall)?
 ```{r rq1_prep, include=FALSE}
 lat_season_means <- modifiedturtle_points %>%
   group_by(series_id, season) %>%
@@ -326,10 +327,101 @@ seasonal separation in per-turtle mean latitude. With that said, these results
 support my hypothesis that juvenile loggerhead latitude varies by season
 in this dataset. Mean latitude was highest in Fall (36.89°N) and lowest
 in Spring (32.02°N). This is consistent with a seasonal shift in latitude.
-## Question 2: 
 
+## Question 2: Are loggerhead turtles locations concentrated in a few 
+## specific geographic areas (“Hotspots”) or are they more evenly distributed?
 
+```{r rq2-hotspots, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Top 20 most-used 1-degree grid cells (counts of turtle locations per grid cell)."}
+grid_counts <- modifiedturtle_points %>%
+  mutate(
+    lat_cell = floor(latitude),
+    lon_cell = floor(lon_wrap)
+  ) %>%
+  count(lat_cell, lon_cell, name = "n_cell") %>%
+  arrange(desc(n_cell))
 
+n_total <- nrow(modifiedturtle_points)
+top10_share <- sum(grid_counts$n_cell[1:min(10, nrow(grid_counts))]) / n_total
+
+top_cells <- grid_counts %>%
+  slice_head(n = 20) %>%
+  mutate(cell = paste0("(", lat_cell, ", ", lon_cell, ")")) %>%
+  arrange(n_cell) %>%
+  mutate(cell = factor(cell, levels = cell))
+
+ggplot(top_cells, aes(x = cell, y = n_cell)) +
+  geom_col() +
+  coord_flip() +
+  labs(x = "Grid cell (lat, lon)", y = "Number of locations")
+
+top10_table <- grid_counts %>% slice_head(n = 10)
+knitr::kable(top10_table, caption = "Top 10 Most-Used 1-Degree Grid cells.")
+```
+To evaluate RQ2, all loggerhead locations were summarized into 1-degree
+latitude–longitude grid cells and the number of observations per cell
+was counted. Under an even spatial distribution, counts would be similar
+across grid cells. However, hotspot clustering would be supported if a small
+subset of cells had a disproportionate share of the locations. In this case, the
+results show clear spatial concentration. The top 10 grid cells contained `r scales::percent(top10_share, accuracy = 0.1)` of all locations 
+(Figure \@ref(fig:rq2-hotspots)). The highest-use cells had significantly higher
+counts of locations than the others. These findings support the RQ2 hypothesis I
+made that loggerhead turtle locations are clustered into a small number of
+hotspots rather than evenly distributed across the study area.
+
+Given the possible data variability, as a data-quality check, longitudes were
+standardized to −180 to 180 where (min = −180.0, max = 180.0). Of those,
+15.4% of locations observed occurred at positive longitudes. 
+
+## Question 3: Does the distribution of classitem categories differ by season?
+```{r rq3-classitem-season, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Classitem composition by season (top categories shown; remaining grouped as 'Other')."}
+N_top <- 8
+
+top_levels <- modifiedturtle_points %>%
+  count(classitem, sort = TRUE) %>%
+  slice_head(n = N_top) %>%
+  pull(classitem)
+
+rq3_df <- modifiedturtle_points %>%
+  mutate(classitem2 = ifelse(classitem %in% top_levels, as.character(classitem), "Other"))
+
+rq3_prop <- rq3_df %>%
+  count(season, classitem2) %>%
+  group_by(season) %>%
+  mutate(prop = n / sum(n)) %>%
+  ungroup()
+
+ggplot(rq3_prop, aes(x = season, y = prop, fill = classitem2)) +
+  geom_col() +
+  labs(x = "Season", y = "Proportion", fill = "classitem")
+
+rq3_table <- rq3_prop %>%
+  select(season, classitem2, prop) %>%
+  tidyr::pivot_wider(names_from = season, values_from = prop)
+
+knitr::kable(
+  rq3_table, digits = 3,
+  caption = "Proportion of observations in each classitem category by season (top categories + Other)."
+)
+```
+
+```{r rq3-biggest-changes, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Largest seasonal changes in classitem composition (max minus min seasonal proportion)."}
+rq3_changes <- rq3_prop %>%
+  group_by(classitem2) %>%
+  summarise(
+    min_prop = min(prop),
+    max_prop = max(prop),
+    range_prop = max_prop - min_prop,
+    .groups = "drop"
+  ) %>%
+  arrange(desc(range_prop))
+
+rq3_changes_top10 <- rq3_changes %>% slice_head(n = 10)
+
+knitr::kable(
+  rq3_changes_top10, digits = 3,
+  caption = "Top 10 classitem categories with the largest seasonal change in proportion (top categories + Other)."
+)
+```
 
 \newpage
 
