@@ -1,56 +1,90 @@
 ---
 title: "Spatial Hotspots and Seasonal Shifts in Juvenile Loggerhead Sea Turtle Telemetry Data (2002–2005)"
-https://github.com/uilliam-c/Connolly_Liam_ENE872_FinalProject
+subtitle: "GitHub: https://github.com/uilliam-c/Connolly_Liam_ENE872_FinalProject"
 author: "Liam Connolly"
-output: bookdown::pdf_document2
-  toc: false
-    number_selections: true
+output:
+  bookdown::pdf_document2:
+    toc: false
+    number_sections: true
+    latex_engine: xelatex
+output_file: "Connolly_ENV872_Project.pdf"
 ---
 \newpage
-\tableofcontents 
+\tableofcontents
+\clearpage
+\listoftables
 \newpage
-\listoftables 
-\newpage
-\listoffigures 
+\listoffigures
 \newpage
 
 ```{r setup, include=FALSE}
-# Set your working directory
-knitr::opts_chunk$set(echo = FALSE, message = FALSE, warning = FALSE)
-# Load your packages
+knitr::opts_chunk$set(
+  echo = FALSE, message = FALSE, warning = FALSE,
+  fig.align = "center",
+  fig.width = 6.5, fig.height = 4.5
+)
+
 library(tidyverse)
 library(lubridate)
-# Set your ggplot theme
+repo_name <- "Connolly_Liam_ENE872_FinalProject"
+candidates <- c(
+  getwd(),
+  file.path(getwd(), repo_name),
+  file.path(getwd(), "EDE_Fall2025", repo_name),
+  "/home/guest/EDE_Fall2025/Connolly_Liam_ENE872_FinalProject",
+  "/home/guest/EDE_Fall2025",
+  "/home/guest"
+)
+repo_root <- NA_character_
+for (p in candidates) {
+  p2 <- normalizePath(p, winslash = "/", mustWork = FALSE)
+  if (file.exists(file.path(p2, "data_raw", "turtlepoints.csv"))) {
+    repo_root <- p2
+    break
+  }
+  if (file.exists(file.path(p2, repo_name, "data_raw", "turtlepoints.csv"))) {
+    repo_root <- file.path(p2, repo_name)
+    break
+  }
+}
+if (is.na(repo_root)) {
+  stop("Could not locate repo root containing data_raw/turtlepoints.csv. Current wd: ", getwd())
+}
+setwd(repo_root)
+
 theme_set(theme_bw())
-# Load your datasets
-turtle_points <- readr::read_csv("../data_raw/turtlepoints.csv",
-  show_col_types = FALSE)
+
+turtle_points <- readr::read_csv("data_raw/turtlepoints.csv", show_col_types = FALSE)
 
 modifiedturtle_points <- turtle_points %>%
-  mutate(date_time =ymd_hms(date_time, tz = "UTC"),
-  month = month(date_time), 
-  season = ifelse(month %in% c(12, 1, 2), "Winter",
-           ifelse(month %in% c(3, 4, 5), "Spring",
-           ifelse(month %in% c(6, 7, 8), "Summer", "Fall"))),
-  season = factor(season, levels = c("Winter", "Spring", "Summer", "Fall")),
-  classitem = factor(classitem)) %>%
+  mutate(
+    date_time = ymd_hms(date_time, tz = "UTC"),
+    month = month(date_time),
+    season = ifelse(month %in% c(12, 1, 2), "Winter",
+             ifelse(month %in% c(3, 4, 5), "Spring",
+             ifelse(month %in% c(6, 7, 8), "Summer", "Fall"))),
+    season = factor(season, levels = c("Winter", "Spring", "Summer", "Fall")),
+    classitem = factor(classitem),
+    lon_wrap = ifelse(longitude > 180, longitude - 360, longitude)
+  ) %>%
   filter(!is.na(latitude), !is.na(longitude), !is.na(date_time))
-modifiedturtle_points <- modifiedturtle_points %>%
-  mutate(lon_wrap = ifelse(longitude > 180, longitude - 360, longitude))
-if (!file.exists("../data_processed/turtle_points_clean.csv")) {
-  write_csv(modifiedturtle_points, "../data_processed/turtle_points_clean.csv")
+
+dir.create("data_processed", showWarnings = FALSE)
+
+if (!file.exists("data_processed/turtle_points_clean.csv")) {
+  write_csv(modifiedturtle_points, "data_processed/turtle_points_clean.csv")
 }
 ```
 
 
-# 1. Rationale
+# Rationale
 According to the online database, from which I collected my data, juvenile 
 loggerhead turtles (Caretta caretta) move around frequently. Due to their 
 juvenile phase of life, they are highly mobile yet, what isn't known is how or 
 why they move to certain places in different seasons or ocean regions. 
 From a spatial perspective, we don't have answers. Being able to identify where 
 and when these turtles move/are found can help better understand their habitats.
-It would be awesome to discover "hotspots" of more concentrated turtle presence 
+It would be interesting to discover "hotspots" of more concentrated turtle presence 
 as that may guide additional ecological analyses in the future. With the data 
 available, it should be possible to assemble a general sense of the spatial 
 patterns these loggerheads exhibit.
@@ -65,7 +99,7 @@ focusing on examing seasonal distribution and spatial concentration for the
 loggerheads. Finally, the data contains a location "class" code (classitem) and 
 some precision fields to help evaluate the patterns of data quality. 
 
-# 2. Research Questions
+# Research Questions
 Research Topic 1) Seasonal distribution Shifts
 Research Question: Do juvenile loggerhead sea turtle locations (latitude)
 differ among seasons (Winter, Spring, Summer, Fall)?
@@ -104,7 +138,7 @@ seasonal shifts in loggerhead behavior so, it is possible that the proportion
 of observations in each class item category differs among seasons. 
 \newpage
 
-# 3. Dataset Information
+# Dataset Information
 This dataset originates from OBIS-SEAMAP. Specifically, the dataset is called
 “SWFSC juvenile loggerhead sea turtle tracking 2002–2005” 
 (Dataset ID 758; Version 1.0.1; internal DOI: 10.82144/4774e438). Actual URL is:
@@ -126,7 +160,7 @@ Reported precision fields (lprecision and tprecision) were constant in this
 dataset, so precision-based comparisons were not informative. 
 \newpage
 
-# 4. Data Wrangling
+# Data Wrangling
 I imported the points CSV into R-studio Online and converted the 
 date_time column to date_time in UTC. I removed any records with missing
 latitude, longitude, or timestamp information. In this case, just one record was
@@ -178,7 +212,7 @@ Basic ranges for Key Variables Used.")
 ```
 \newpage
 
-# 5. Exploratory Analysis 
+# Exploratory Analysis 
 This analysis of the data used gives a general summary of the spatial
 structure of the juvenile loggerhead turtle location dataset prior to testing
 my three hypotheses. First, I use maps of latitude and longitude to describe
@@ -188,12 +222,8 @@ seasons. To inquire the spatial concentration for question 2, I tried to express
 a visualization of point density to identify whether sightings appear
 clustered into potential “hotspots.” Additionally, I was curious to see if I
 could separate the observations between individual turtles (via series_id) to
-find repeated sightings. Finally, I try to express latitude by season
-(Winter, Spring, Summer, Fall) to address the seasonal questions from the first
-question and to compare the reported location precision (lprecision) with
-classitem categories. This is to determine if the differences in positional 
-precision could influence the spatial clustering that I was curious of in my
-third research question.
+find repeated sightings. Finally, season-based visualizations provide descriptive context for seasonal latitude patterns (RQ1) and seasonal shifts in classitem composition (RQ3).
+
 ```{r}
 missingdata_table <- modifiedturtle_points %>%
   summarise(
@@ -221,7 +251,7 @@ ggplot(modifiedturtle_points, aes(x = lon_wrap, y = latitude)) +
 Figure shows the geographic extent of juvenile loggerhead turtle
 locations within this dataset. 
 
-```{r time, fig.cap="Number of location observations over time (by month)."}
+```{r firsttime, fig.cap="Number of location observations over time (by month)."}
 time_counts <- modifiedturtle_points %>%
   mutate(month_start = floor_date(date_time, unit = "month")) %>%
   count(month_start)
@@ -232,20 +262,7 @@ ggplot(time_counts, aes(x = month_start, y = n)) +
 ```
 This Figure shows sampling intensity across the duration of the study period.
 
-```{r time, fig.cap="Number of location observations over time (by month)."}
-time_counts <- modifiedturtle_points %>%
-  mutate(month_start = floor_date(date_time, unit = "month")) %>%
-  count(month_start)
-
-ggplot(time_counts, aes(x = month_start, y = n)) +
-  geom_col() +
-  scale_x_date(date_breaks = "6 months", date_labels = "%Y-%m") +
-  labs(x = "Month", y = "Number of observations")
-```
-This figure shows that separate turtles provide different numbers
-of observations.
-
-```{r lat_season, fig.cap="Latitude by season."}
+```{r latseason, fig.cap="Latitude by season."}
 ggplot(modifiedturtle_points, aes(x = season, y = latitude)) +
   geom_boxplot() +
   labs(x = "Season", y = "Latitude")
@@ -268,7 +285,7 @@ ggplot(hotgrid, aes(x = lon_bin, y = lat_bin, fill = n)) +
 This figure inquires and suggests areas of concentrated observations
 that motivate the hotspot analysis for Q2.
 
-```{r class_season, fig.cap="Proportion of observations in the most common classitem categories by season."}
+```{r classseason, fig.cap="Proportion of observations in the most common classitem categories by season."}
 top_class <- modifiedturtle_points %>%
   count(classitem, sort = TRUE) %>%
   slice_head(n = 6) %>%
@@ -287,11 +304,10 @@ shown, a few make up most observations. The relative proportions appear similar
 between seasons.
 \newpage
 
-# 6. Analysis
+# Analysis
 
 
-## Question 1: Do juvenile loggerhead sea turtle locations (latitude) differ 
-## among seasons (Winter, Spring, Summer, Fall)?
+## Question 1: Do juvenile loggerhead sea turtle locations (latitude) differ among seasons (Winter, Spring, Summer, Fall)?
 ```{r rq1_prep, include=FALSE}
 lat_season_means <- modifiedturtle_points %>%
   group_by(series_id, season) %>%
@@ -302,7 +318,7 @@ lat_season_means <- modifiedturtle_points %>%
   )
 ```
 
-```{r rq1_fig, fig.cap="Mean latitude by season (summarized per turtle)."}
+```{r rq1fig, fig.cap="Mean latitude by season (summarized per turtle)."}
 ggplot(lat_season_means, aes(x = season, y = mean_lat)) +
   geom_boxplot() +
   labs(x = "Season", y = "Mean latitude (per turtle)")
@@ -322,15 +338,14 @@ rq1_season_summary
 ```
 After being able to summarize latitude by individual turtle occurrences and
 season, mean latitude differed significantly among seasons (ANOVA; df = 3,
-58; F = 38.3; p = 8.97 × 10⁻¹⁴ or p<0.0001). This figure clearly shows
+58; F = 38.3; p = 8.97 × 10^-14 or p<0.0001). This figure clearly shows
 seasonal separation in per-turtle mean latitude. With that said, these results
 support my hypothesis (seeking to solve Research Question 1) that juvenile 
 loggerhead latitude varies by season in this dataset. Mean latitude was highest
 in Fall (36.89°N) and lowest in Spring (32.02°N). This is consistent with a 
 seasonal shift in latitude.
 
-## Question 2: Are loggerhead turtles locations concentrated in a few 
-## specific geographic areas (“Hotspots”) or are they more evenly distributed?
+## Question 2: Are loggerhead turtles locations concentrated in a few specific geographic areas (“Hotspots”) or are they more evenly distributed?
 
 ```{r rq2-hotspots, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Top 20 most-used 1-degree grid cells (counts of turtle locations per grid cell)."}
 grid_counts <- modifiedturtle_points %>%
@@ -363,14 +378,13 @@ latitude–longitude grid cells and the number of observations per cell
 was counted. Under an even spatial distribution, counts would be similar
 across grid cells. However, hotspot clustering would be supported if a small
 subset of cells had a disproportionate share of the locations. In this case, the
-results show clear spatial concentration. The top 10 grid cells contained `r scales::percent(top10_share, accuracy = 0.1)` of all locations 
-(Figure \@ref(fig:rq2-hotspots)). The highest-use cells had significantly higher
-counts of locations than the others. These findings support the RQ2 hypothesis I
-made that loggerhead turtle locations are clustered into a small number of
-hotspots rather than evenly distributed across the study area.
+results show clear spatial concentration. The top 10 grid cells contained `r scales::percent(top10_share, accuracy = 0.1)` of all locations. The highest-use
+cells had substantially higher counts of locations than the others. These 
+findings support the RQ2 hypothesis I made that loggerhead turtle locations are clustered into a small number of hotspots rather than evenly distributed across 
+the study area.
 
 Given the possible data variability, as a data-quality check, longitudes were
-standardized to −180 to 180 where (min = −180.0, max = 180.0). Of those,
+standardized to -180 to 180 where (min = -180.0, max = 180.0). Of those,
 15.4% of locations observed occurred at positive longitudes. 
 
 ## Question 3: Does the distribution of classitem categories differ by season?
@@ -444,7 +458,7 @@ on observed patterns. As I did not run a test of statistical significance, its
 possible for the results to be different. 
 \newpage
 
-# 7. Summary and Conclusions
+# Summary and Conclusions
 
 This dataset analyzed juvenile loggerhead sea turtle tracking locations between
 2002–2005 to determine seasonal latitude patterns, spatial clustering into
@@ -485,8 +499,7 @@ while classitem 5 increased from 0.059 in Winter to 0.168 in Summer. Also,
 classitem 21 increased from 0.080 in Winter to 0.141 in Fall. These patterns are
 consistent with the hypothesis I made that classitem composition differs
 by season. However, this conclusion was drawn from proportional changes and not
-from a significance test. I was a bit unsure of what test to run so, I defaulted
-to this. 
+from a significance test. 
 
 ## Limitations and next steps
 
@@ -509,7 +522,8 @@ excluded from what I had access to could prove instrumental in learning more
 about the turtle's spatial location and movement throughout the seasons.
 \newpage
 
-# References (paraphrased a few things in introduction)
+# References 
+(paraphrased a few things in introduction)
 Howell, E.A., P.H. Dutton, J.J. Polovina, H. Bailey, D.M. Parker and 
 G.H. Balazs. 2010. Oceanographic influences on the dive behavior of 
 juvenile loggerhead turtles (Caretta caretta) in the North Pacific Ocean. 
