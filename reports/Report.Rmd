@@ -401,7 +401,7 @@ rq3_table <- rq3_prop %>%
 knitr::kable(
   rq3_table, digits = 3,
   caption = "Proportion of observations in each classitem category by season (top categories + Other)."
-)
+) 
 ```
 
 ```{r rq3-biggest-changes, echo=FALSE, message=FALSE, warning=FALSE, fig.cap="Largest seasonal changes in classitem composition (max minus min seasonal proportion)."}
@@ -422,7 +422,25 @@ knitr::kable(
   caption = "Top 10 classitem categories with the largest seasonal change in proportion (top categories + Other)."
 )
 ```
+For RQ3 (research question 3), I compared the composition of classitem
+categories across seasons. Due to classitem containing many categories, I
+only displayed the most frequent categories and all remaining categories were
+noted as “Other”. The proportion plot shows that classitem composition varied
+across seasons. For example, the “Other” category decreases from 0.404 in Winter
+to 0.206 in Fall. By contrast, while classitem 5 increases from 0.059 in Winter
+to 0.168 in Summer, Classitem 21 also increases toward Fall 
+(0.080 in Winter to 0.141 in Fall). The tables also summarize the seasonal
+proportions for the categories and identify the categories with the
+largest seasonal changes (those being classitem 5 and 21). This analysis is
+descriptive and does not include a test of statistical significance.
 
+In review, these results match my RQ3 hypothesis that classitem composition
+would differ by season. This is because multiple categories,
+as well as the non listed “Other” group, change noticeably across Winter, 
+Spring, Summer, and Fall. However, it is important to note as I did above, that
+because this analysis is descriptive, the results support the hypothesis based
+on observed patterns. As I did not run a test of statistical significance, its
+possible for the results to be different. 
 \newpage
 
 # Summary and Conclusions
