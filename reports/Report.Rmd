@@ -324,9 +324,10 @@ After being able to summarize latitude by individual turtle occurrences and
 season, mean latitude differed significantly among seasons (ANOVA; df = 3,
 58; F = 38.3; p = 8.97 × 10⁻¹⁴ or p<0.0001). This figure clearly shows
 seasonal separation in per-turtle mean latitude. With that said, these results
-support my hypothesis that juvenile loggerhead latitude varies by season
-in this dataset. Mean latitude was highest in Fall (36.89°N) and lowest
-in Spring (32.02°N). This is consistent with a seasonal shift in latitude.
+support my hypothesis (seeking to solve Research Question 1) that juvenile 
+loggerhead latitude varies by season in this dataset. Mean latitude was highest
+in Fall (36.89°N) and lowest in Spring (32.02°N). This is consistent with a 
+seasonal shift in latitude.
 
 ## Question 2: Are loggerhead turtles locations concentrated in a few 
 ## specific geographic areas (“Hotspots”) or are they more evenly distributed?
@@ -357,7 +358,7 @@ ggplot(top_cells, aes(x = cell, y = n_cell)) +
 top10_table <- grid_counts %>% slice_head(n = 10)
 knitr::kable(top10_table, caption = "Top 10 Most-Used 1-Degree Grid cells.")
 ```
-To evaluate RQ2, all loggerhead locations were summarized into 1-degree
+To evaluate RQ2 (Research Question 2), all loggerhead locations were summarized into 1-degree
 latitude–longitude grid cells and the number of observations per cell
 was counted. Under an even spatial distribution, counts would be similar
 across grid cells. However, hotspot clustering would be supported if a small
@@ -419,10 +420,10 @@ rq3_changes_top10 <- rq3_changes %>% slice_head(n = 10)
 
 knitr::kable(
   rq3_changes_top10, digits = 3,
-  caption = "Top 10 classitem categories with the largest seasonal change in proportion (top categories + Other)."
+  caption = "Top 10 Classitem Categories with the Largest Seasonal Change in Proportion (top categories + Other)."
 )
 ```
-For RQ3 (research question 3), I compared the composition of classitem
+For RQ3 (Research Question 3), I compared the composition of classitem
 categories across seasons. Due to classitem containing many categories, I
 only displayed the most frequent categories and all remaining categories were
 noted as “Other”. The proportion plot shows that classitem composition varied
@@ -443,10 +444,73 @@ on observed patterns. As I did not run a test of statistical significance, its
 possible for the results to be different. 
 \newpage
 
-# Summary and Conclusions
+# 7. Summary and Conclusions
 
+This dataset analyzed juvenile loggerhead sea turtle tracking locations between
+2002–2005 to determine seasonal latitude patterns, spatial clustering into
+hotspots, and seasonal differences in classitem composition. Analyses performed
+in this report first cleaned the observations with longitude wrapping and 
+season definitions (Winter, Spring, Summer, Fall).
 
+RQ1: Does latitude differ among seasons?
+
+Seasonal latitude differed strongly when analyzing the mean latitude per turtle
+per season. This was done to reduce overweighting of individuals with many
+observations to avoid unbalancing the data. An ANOVA of per-turtle seasonal
+mean latitude indicated that the season had a significant effect of (F(3, 58) = 
+38.3, p = 8.97e-14). The mean latitude was lowest in Spring (32.02) and Winter
+(32.16) and highest in Summer (36.12) and Fall (36.89). This is consistent with
+an observed seasonal movement north during Summer/Fall as relative to
+Winter/Spring.
+
+RQ2: Are turtle locations clustered into geographic hotspots?
+
+The spatial concentration was evaluated through aggregating locations
+into 1-degree latitude–longitude grid cells and counting observations per cell.
+The top 10 grid cells contained `r scales::percent(top10_share, accuracy = 0.1)`
+of all locations and the highest-use cells had much larger counts
+than the rest of the cells. This assortment of concentrations supports the 
+hypothesis that locations are clustered into a small number of hotspots
+rather than evenly distributed across the study area.
+
+RQ3: Does classitem composition differ by season?
+
+The seasonal differences in classitem were assessed descriptively using 
+proportional composition by the different seasons. Due to classitem containing
+many categories and not being documented in the metadata, the most frequent
+categories were displayed and all remaining categories were labeled as “Other”.
+The proportional composition varied across the different seasons. For example,
+the “Other” category decreased from 0.404 in Winter to 0.206 in Fall, 
+while classitem 5 increased from 0.059 in Winter to 0.168 in Summer. Also, 
+classitem 21 increased from 0.080 in Winter to 0.141 in Fall. These patterns are
+consistent with the hypothesis I made that classitem composition differs
+by season. However, this conclusion was drawn from proportional changes and not
+from a significance test. I was a bit unsure of what test to run so, I defaulted
+to this. 
+
+## Limitations and next steps
+
+There were multiple limitations I encountered that definitely played a role 
+in influencing my interpretation. First, sampling effort was not even between
+individuals and time. My first research question tried to reduce this bias
+through per-turtle summaries, but the hotspot counts can still reflect
+this variable sampling. Second, with classitem not being defined in the
+metadata, I had to interpret the results as differences in an undocumented
+categorical code rather than the specific behaviors they were meant to be. This
+is where only being able to download certain public data while other data was
+excluded created some issues. Third, hotspot identification depends on the
+grid's resolution (in this case, 1-degree cells); but using a finer resolution
+may have yielded better overall results. For the future, assuming there was
+access to the full dataset without variables such as classitem being excluded,
+it would be interesting to consider other spatial clustering analyses as well as
+more significance tests. For example, doing a chi square test might prove
+useful. Additionally, examining the "clearly defined behaviors" that were
+excluded from what I had access to could prove instrumental in learning more
+about the turtle's spatial location and movement throughout the seasons.
 \newpage
 
-# References
-<add references here if relevant, otherwise delete this section> 
+# References (paraphrased a few things in introduction)
+Howell, E.A., P.H. Dutton, J.J. Polovina, H. Bailey, D.M. Parker and 
+G.H. Balazs. 2010. Oceanographic influences on the dive behavior of 
+juvenile loggerhead turtles (Caretta caretta) in the North Pacific Ocean. 
+Marine Biology. 157:1011-1026.
